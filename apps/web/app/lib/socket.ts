@@ -2,7 +2,8 @@ let socket: WebSocket | null = null;
 
 export function getSocket(): WebSocket {
   if (!socket || socket.readyState === WebSocket.CLOSED) {
-    socket = new WebSocket("ws://localhost:4000"); 
+    const url = process.env.NEXT_PUBLIC_WS_URL;
+    socket = new WebSocket(url || "ws://localhost:4000"); // Use wss:// in production
   }
   return socket;
 }
