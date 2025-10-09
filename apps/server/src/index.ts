@@ -1,4 +1,5 @@
 import express from 'express';
+import cron from 'node-cron'
 import { createServer } from 'http';
 import WebSocket, { Server as WebSocketServer } from 'ws';
 import { randomBytes } from 'crypto';
@@ -11,10 +12,8 @@ const wss = new WebSocketServer({
   verifyClient: (info, done) => {
 
     const origin = info.origin;
-
-
     const allowedOrigins = [
-      'https://chat-app-web-eta.vercel.app', 
+      'https://chat-app-web-eta.vercel.app',
     ];
 
     if (allowedOrigins.includes(origin)) {
@@ -182,6 +181,22 @@ function broadcastToRoom(roomCode: string, message: any, skipUserId?: string) {
     }
   });
 }
+
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    await fetch(`http://localhost:${process.env.PORT || 4000}/health`);
+    console.log('🔥 Keep-alive ping sent');
+  } catch (err) {
+    console.error('Keep-alive ping failed:', err);
+  }
+});
+
+
+cron.schedule('0 0 * * *', () => {
+  rooms.clear();
+  console.log('🧹 All chats cleared (24h cron)');
+});
+
 
 const HEARTBEAT_INTERVAL = 30000;
 setInterval(() => {
