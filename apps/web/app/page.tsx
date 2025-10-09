@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSocket } from "../app/lib/socket";
+import { getSocket } from "./lib/socket";
 import ChatBox from "./components/ChatBox";
+
 
 function randomId() {
   return Math.random().toString(36).slice(2, 10);

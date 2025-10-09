@@ -6,6 +6,7 @@ export interface Message {
   senderId: string;
   sender: string;
   timestamp: Date;
+  status?: 'sent' | 'seen';
 }
 
 export interface RoomData {

@@ -4,4 +4,5 @@ export interface Message {
   senderId: string;
   sender: string;
   timestamp: string; 
+  status?: 'sent' | 'seen';
 }

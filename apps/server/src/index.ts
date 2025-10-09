@@ -79,12 +79,13 @@ wss.on('connection', (ws: ExtWebSocket) => {
       if (!room || !message?.trim()) return;
 
       room.lastActive = Date.now();
-      const msg: Message = {
+      const msg: Message & { status?: string } = {
         id: randomBytes(4).toString('hex'),
         content: message,
         senderId: userId,
         sender: name,
         timestamp: new Date(),
+        status: 'sent',
       };
 
       room.messages.push(msg);
@@ -94,6 +95,32 @@ wss.on('connection', (ws: ExtWebSocket) => {
       });
 
       console.log(`✉️ [${userId}] → room ${roomCode}: ${message}`);
+    }
+   
+    else if (data.type === 'typing') {
+      const { roomCode, userId, name } = data;
+      if (!roomCode || !userId) return;
+      broadcastToRoom(roomCode, {
+        type: 'typing',
+        userId,
+        name,
+      }, userId); 
+    }
+
+    else if (data.type === 'seen-message') {
+      const { roomCode, messageId, userId } = data;
+      const room = rooms.get(roomCode);
+      if (!room) return;
+ 
+      const msg = room.messages.find((m) => m.id === messageId);
+      if (msg && msg.status !== 'seen') {
+        msg.status = 'seen';
+        broadcastToRoom(roomCode, {
+          type: 'message-seen',
+          messageId,
+          userId,
+        });
+      }
     }
   });
 
@@ -119,7 +146,8 @@ wss.on('connection', (ws: ExtWebSocket) => {
   });
 });
 
-function broadcastToRoom(roomCode: string, message: any) {
+
+function broadcastToRoom(roomCode: string, message: any, skipUserId?: string) {
   const room = rooms.get(roomCode);
   if (!room) return;
 
@@ -128,7 +156,8 @@ function broadcastToRoom(roomCode: string, message: any) {
     if (
       client.readyState === WebSocket.OPEN &&
       c.roomId === roomCode &&
-      room.users.has(c.id)
+      room.users.has(c.id) &&
+      (!skipUserId || c.id !== skipUserId)
     ) {
       client.send(JSON.stringify(message));
     }
@@ -149,7 +178,7 @@ setInterval(() => {
   });
 }, HEARTBEAT_INTERVAL);
 
-// Optionally, cleanup rooms if unused over time (like you had before)...
+
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
