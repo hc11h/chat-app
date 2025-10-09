@@ -6,7 +6,26 @@ import { Message, RoomData, ExtWebSocket } from './types';
 
 const app = express();
 const httpServer = createServer(app);
-const wss = new WebSocketServer({ server: httpServer });
+const wss = new WebSocketServer({
+  server: httpServer,
+  verifyClient: (info, done) => {
+
+    const origin = info.origin;
+
+
+    const allowedOrigins = [
+      'https://chat-app-web-eta.vercel.app', 
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      console.log(`✅ WebSocket connection accepted from origin: ${origin}`);
+      done(true); 
+    } else {
+      console.log(`❌ WebSocket connection rejected from origin: ${origin}`);
+      done(false, 403, 'Forbidden');
+    }
+  }
+});
 
 const rooms = new Map<string, RoomData>();
 
