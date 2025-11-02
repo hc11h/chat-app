@@ -1,19 +1,16 @@
-# WebSocket Group Chat Application MVP
+# 💬 Chat App using WebSockets
 
-This is a simple, fun, and robust MVP (Minimum Viable Product) of a real-time group chat application built with WebSockets. It's designed to be easy to set up and use, showcasing a clean UI/UX and essential chat functionalities.
+A lightweight real-time group chat application built with WebSockets.
+It’s a simple MVP that lets users join rooms and chat instantly, with a clean interface and smooth experience.
 
 ## ✨ Features
 
--   **Group Chat Functionality:** Create and join unique chat rooms.
--   **Real-time Messaging:** Instantaneous message delivery using WebSockets.
--   **Room Management:** Seamless creation and joining of chat rooms.
--   **Typing Indicators:** See when other users are typing in real-time.
--   **Message "Seen" Status:** Visual confirmation when messages have been viewed by other participants.
--   **Robust Error Handling:** Comprehensive error messages and graceful handling on both frontend and backend.
--   **Rate Limiting:** Server-side rate limiting to prevent abuse and ensure fair usage.
--   **Server-Side Input Sanitization:** Protects against malicious input (e.g., XSS attacks) by sanitizing user-generated content.
--   **Clean UI/UX:** Built with modern design principles using Shadcn UI and Tailwind CSS.
--   **Sonner Toasts:** User-friendly notifications for various events (room created, user joined/left, errors, etc.).
+* **Real-time messaging** – Instant chat powered by WebSockets.
+* **Group rooms** – Create or join chat rooms to talk with others.
+* **Typing indicators** – See when someone is typing.
+* **Seen status** – Know when your message has been viewed.
+* **Clean design** – Modern UI built with Shadcn UI and Tailwind CSS.
+
 
 ## 🚀 Technology Stack
 
