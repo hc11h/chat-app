@@ -4,6 +4,10 @@ import { createServer } from 'http';
 import WebSocket, { Server as WebSocketServer } from 'ws';
 import { randomBytes } from 'crypto';
 import { Message, RoomData, ExtWebSocket } from './types';
+import { sendError } from './utils/errorUtils';
+import { createRoom, joinRoom, leaveRoom, getRoomsMap } from './services/roomManager';
+import { handleSendMessage, handleTyping, handleSeenMessage } from './services/messageHandler';
+import { initializeRateLimiter, checkRateLimit } from './utils/rateLimiter';
 
 const app = express();
 const httpServer = createServer(app);
@@ -14,6 +18,7 @@ const wss = new WebSocketServer({
     const origin = info.origin;
     const allowedOrigins = [
       'https://chat-app-web-eta.vercel.app',
+      'http://localhost:3000'
     ];
 
     if (allowedOrigins.includes(origin)) {
@@ -26,14 +31,15 @@ const wss = new WebSocketServer({
   }
 });
 
-const rooms = new Map<string, RoomData>();
+// const rooms = new Map<string, RoomData>(); // Removed as rooms are now managed by roomManager.ts
 
-app.get('/health', (_, res) => res.status(200).send('OK'));
+app.get('/', (_, res) => res.status(200).send('OK'));
 
 wss.on('connection', (ws: ExtWebSocket) => {
   ws.isAlive = true;
   ws.id = '';      
   ws.roomId = '';
+  initializeRateLimiter(ws);
 
   console.log('🟢 Client connected');
 
@@ -42,6 +48,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
   });
 
   ws.on('message', (raw: string) => {
+    if (!checkRateLimit(ws)) {
+      return;
+    }
+
     let data: any;
     try {
       data = JSON.parse(raw);
@@ -52,120 +62,32 @@ wss.on('connection', (ws: ExtWebSocket) => {
 
     if (data.type === 'join-room') {
       const { roomId, userId } = data;
-      if (!roomId || !userId) {
-        ws.send(JSON.stringify({ type: 'error', message: 'join-room missing roomId or userId' }));
-        return;
-      }
-      const room = rooms.get(roomId);
-      if (!room) {
-        ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
-        return;
-      }
-
-      ws.id = userId;
-      ws.roomId = roomId;
-      room.users.add(userId);
-      room.lastActive = Date.now();
-
-      ws.send(JSON.stringify({
-        type: 'joined-room',
-        roomCode: roomId,
-        messages: room.messages,
-      }));
-
-      broadcastToRoom(roomId, {
-        type: 'user-joined',
-        usersCount: room.users.size,
-      });
-
-      console.log(`👥 User joined: userId=${ws.id}, room=${roomId}, usersCount=${room.users.size}`);
+      joinRoom(ws, roomId, userId, broadcastToRoom);
     }
     else if (data.type === 'create-room') {
-      const roomCode = randomBytes(3).toString('hex').toUpperCase();
-      rooms.set(roomCode, {
-        users: new Set<string>(),
-        messages: [],
-        lastActive: Date.now(),
-      });
-
-      ws.send(JSON.stringify({ type: 'room-created', roomCode }));
-      console.log(`🏠 Room created: ${roomCode}`);
+      createRoom(ws);
     }
     else if (data.type === 'send-message') {
-      const { roomCode, message, userId, name } = data;
-      const room = rooms.get(roomCode);
-      if (!room || !message?.trim()) return;
-
-      room.lastActive = Date.now();
-      const msg: Message & { status?: string } = {
-        id: randomBytes(4).toString('hex'),
-        content: message,
-        senderId: userId,
-        sender: name,
-        timestamp: new Date(),
-        status: 'sent',
-      };
-
-      room.messages.push(msg);
-      broadcastToRoom(roomCode, {
-        type: 'new-message',
-        message: msg,
-      });
-
-      console.log(`✉️ [${userId}] → room ${roomCode}: ${message}`);
+      handleSendMessage(ws, data, broadcastToRoom);
     }
    
     else if (data.type === 'typing') {
-      const { roomCode, userId, name } = data;
-      if (!roomCode || !userId) return;
-      broadcastToRoom(roomCode, {
-        type: 'typing',
-        userId,
-        name,
-      }, userId); 
+      handleTyping(ws, data, broadcastToRoom);
     }
 
     else if (data.type === 'seen-message') {
-      const { roomCode, messageId, userId } = data;
-      const room = rooms.get(roomCode);
-      if (!room) return;
- 
-      const msg = room.messages.find((m) => m.id === messageId);
-      if (msg && msg.status !== 'seen') {
-        msg.status = 'seen';
-        broadcastToRoom(roomCode, {
-          type: 'message-seen',
-          messageId,
-          userId,
-        });
-      }
+      handleSeenMessage(ws, data, broadcastToRoom);
     }
   });
 
   ws.on('close', () => {
-    if (!ws.roomId || !ws.id) return;
-
-    const room = rooms.get(ws.roomId);
-    if (room && room.users.has(ws.id)) {
-      room.users.delete(ws.id);
-
-      broadcastToRoom(ws.roomId, {
-        type: 'user-left',
-        usersCount: room.users.size,
-      });
-
-      console.log(`🔴 User left: userId=${ws.id}, room=${ws.roomId}, usersCount=${room.users.size}`);
-
-      if (room.users.size === 0) {
-        rooms.delete(ws.roomId);
-        console.log(`🧹 Room removed: ${ws.roomId}`);
-      }
-    }
+    leaveRoom(ws, broadcastToRoom);
   });
 });
 
 
 function broadcastToRoom(roomCode: string, message: any, skipUserId?: string) {
+  const rooms = getRoomsMap();
   const room = rooms.get(roomCode);
   if (!room) return;
 
@@ -193,6 +115,7 @@ cron.schedule('*/5 * * * *', async () => {
 
 
 cron.schedule('0 0 * * *', () => {
+  const rooms = getRoomsMap();
   rooms.clear();
   console.log('🧹 All chats cleared (24h cron)');
 });
