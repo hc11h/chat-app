@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocket } from "../lib/socket";
 import { Message } from "../types";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "app/components/ui/input";
+import { Button } from "app/components/ui/button";
+import { Card, CardContent } from "app/components/ui/card";
+import { ScrollArea } from "app/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "app/components/ui/avatar";
 import { toast } from "sonner";
 
 interface ChatRoomProps {
