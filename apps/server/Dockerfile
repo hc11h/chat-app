@@ -7,7 +7,7 @@ COPY apps/server/tsconfig.json ./
 
 COPY apps/server/src ./src
 
-RUN npm install --production=false
+RUN npm install
 
 RUN npx tsc
 

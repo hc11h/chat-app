@@ -1,135 +1,103 @@
-# Turborepo starter
+# WebSocket Group Chat Application MVP
 
-This Turborepo starter is maintained by the Turborepo core team.
+This is a simple, fun, and robust MVP (Minimum Viable Product) of a real-time group chat application built with WebSockets. It's designed to be easy to set up and use, showcasing a clean UI/UX and essential chat functionalities.
 
-## Using this example
+## ✨ Features
 
-Run the following command:
+-   **Group Chat Functionality:** Create and join unique chat rooms.
+-   **Real-time Messaging:** Instantaneous message delivery using WebSockets.
+-   **Room Management:** Seamless creation and joining of chat rooms.
+-   **Typing Indicators:** See when other users are typing in real-time.
+-   **Message "Seen" Status:** Visual confirmation when messages have been viewed by other participants.
+-   **Robust Error Handling:** Comprehensive error messages and graceful handling on both frontend and backend.
+-   **Rate Limiting:** Server-side rate limiting to prevent abuse and ensure fair usage.
+-   **Server-Side Input Sanitization:** Protects against malicious input (e.g., XSS attacks) by sanitizing user-generated content.
+-   **Clean UI/UX:** Built with modern design principles using Shadcn UI and Tailwind CSS.
+-   **Sonner Toasts:** User-friendly notifications for various events (room created, user joined/left, errors, etc.).
 
-```sh
-npx create-turbo@latest
+## 🚀 Technology Stack
+
+This application is a monorepo managed by **Turborepo**, comprising a Next.js frontend and a Node.js backend.
+
+### Frontend (`apps/web`)
+
+-   **Framework:** [Next.js](https://nextjs.org/) (React framework for production)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/) (utility-first CSS framework)
+-   **UI Components:** [Shadcn UI](https://ui.shadcn.com/) (beautifully designed components built with Radix UI and Tailwind CSS)
+-   **Notifications:** [Sonner](https://sonner.emilkowalski.app/) (an opinionated toast component for React)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
+-   **WebSocket Client:** Native WebSocket API
+
+### Backend (`apps/server`)
+
+-   **Runtime:** [Node.js](https://nodejs.org/)
+-   **Web Framework:** [Express.js](https://expressjs.com/) (for HTTP health checks)
+-   **WebSockets:** [`ws` library](https://github.com/websockets/ws) (for WebSocket server implementation)
+-   **Scheduling:** [`node-cron`](https://github.com/node-cron/node-cron) (for server-side tasks like room cleanup)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
+
+## 🛠️ Setup & Running Locally
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+-   [Node.js](https://nodejs.org/en/download/) (v18 or higher)
+-   [Yarn](https://classic.yarnpkg.com/en/docs/install/) (recommended package manager for this monorepo)
+-   [Docker](https://www.docker.com/products/docker-desktop/) & [Docker Compose](https://docs.docker.com/compose/install/) (for containerized setup)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/chat-app.git
+cd chat-app
 ```
 
-## What's inside?
+### 2. Install Dependencies
 
-This Turborepo includes the following packages/apps:
+Install dependencies for the entire monorepo:
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+yarn install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 3. Run with Docker Compose (Recommended)
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+For the easiest setup, use Docker Compose to run both the frontend and backend services:
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+docker-compose up --build
 ```
 
-### Develop
+-   The frontend will be accessible at `http://localhost:3000`.
+-   The backend API will be running on `http://localhost:4000`.
 
-To develop all apps and packages, run the following command:
+### 4. Run Manually (Alternative)
 
-```
-cd my-turborepo
+If you prefer to run the services individually without Docker:
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+#### Start the Backend Server
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+cd apps/server
+yarn dev
+# Or, if you need to build first:
+yarn build
+node dist/index.js
 ```
 
-### Remote Caching
+The backend server will start on `http://localhost:4000`.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+#### Start the Frontend Application
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+cd apps/web
+yarn dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+The frontend application will start on `http://localhost:3000`.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## 📂 Project Structure
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+-   `apps/server`: Contains the Node.js WebSocket backend.
+-   `apps/web`: Contains the Next.js frontend application.
