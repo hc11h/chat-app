@@ -2,9 +2,7 @@ import express from 'express';
 import cron from 'node-cron'
 import { createServer } from 'http';
 import WebSocket, { Server as WebSocketServer } from 'ws';
-import { randomBytes } from 'crypto';
-import { Message, RoomData, ExtWebSocket } from './types';
-import { sendError } from './utils/errorUtils';
+import { ExtWebSocket } from './types';
 import { createRoom, joinRoom, leaveRoom, getRoomsMap } from './services/roomManager';
 import { handleSendMessage, handleTyping, handleSeenMessage } from './services/messageHandler';
 import { initializeRateLimiter, checkRateLimit } from './utils/rateLimiter';
@@ -22,16 +20,15 @@ const wss = new WebSocketServer({
     ];
 
     if (allowedOrigins.includes(origin)) {
-      console.log(`✅ WebSocket connection accepted from origin: ${origin}`);
+      console.log(`WebSocket connection accepted from origin: ${origin}`);
       done(true); 
     } else {
-      console.log(`❌ WebSocket connection rejected from origin: ${origin}`);
+      console.log(`WebSocket connection rejected from origin: ${origin}`);
       done(false, 403, 'Forbidden');
     }
   }
 });
 
-// const rooms = new Map<string, RoomData>(); // Removed as rooms are now managed by roomManager.ts
 
 app.get('/', (_, res) => res.status(200).send('OK'));
 
@@ -41,7 +38,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
   ws.roomId = '';
   initializeRateLimiter(ws);
 
-  console.log('🟢 Client connected');
+  console.log('Client connected');
 
   ws.on('pong', () => {
     ws.isAlive = true;
@@ -106,8 +103,8 @@ function broadcastToRoom(roomCode: string, message: any, skipUserId?: string) {
 
 cron.schedule('*/5 * * * *', async () => {
   try {
-    await fetch(`http://localhost:${process.env.PORT || 4000}/health`);
-    console.log('🔥 Keep-alive ping sent');
+    await fetch(`http://localhost:${process.env.PORT || 4000}/`);
+    console.log('Keep-alive ping sent');
   } catch (err) {
     console.error('Keep-alive ping failed:', err);
   }
@@ -126,10 +123,10 @@ setInterval(() => {
   wss.clients.forEach((client) => {
     const ws = client as ExtWebSocket;
     if (!ws.isAlive) {
-      console.log(`💀 Terminating stale connection: userId=${ws.id}`);
+      console.log(`Terminating stale connection: userId=${ws.id}`);
       return ws.terminate();
     }
-    console.log(`💓 Pinging client userId=${ws.id || '(no-id yet)'}`);
+    console.log(`Pinging client userId=${ws.id || '(no-id yet)'}`);
     ws.isAlive = false;
     ws.ping();
   });
@@ -139,5 +136,5 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Server listening on ${PORT}`);
+  console.log(`Server listening on ${PORT}`);
 });
