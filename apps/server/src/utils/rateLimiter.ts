@@ -2,7 +2,7 @@ import { sendError } from './errorUtils';
 import { ExtWebSocket } from '../types';
 
 const MESSAGE_WINDOW_MS = 1000; 
-const MAX_MESSAGES_PER_WINDOW = 10; 
+const MAX_MESSAGES_PER_WINDOW = 20; 
 
 export function initializeRateLimiter(ws: ExtWebSocket) {
   ws.rateLimiter = {

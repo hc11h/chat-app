@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { getSocket } from "./lib/socket";
-// import ChatBox from "./components/ChatBox"; // Will be replaced by ChatRoom
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +38,7 @@ export default function ChatPage() {
       toast.error("WebSocket error occurred.");
       console.error("WebSocket error:", err);
     });
-  }, [userId]); // Added userId to dependencies as it is used in the useEffect callback
+  }, [userId]); 
 
   const handleCreate = () => {
     if (!name.trim()) {
@@ -68,17 +66,17 @@ export default function ChatPage() {
       return;
     }
     const socket = getSocket();
-    if (socket.readyState === WebSocket.OPEN) {
+
+    const joinRoomAttempt = () => {
       socket.send(JSON.stringify({ type: "join-room", roomCode, userId, name }));
-      setStep("chat");
-      toast.success(`Joining room ${roomCode}...`);
+      toast.success(`Attempting to join room ${roomCode}...`);
+    };
+
+    if (socket.readyState === WebSocket.OPEN) {
+      joinRoomAttempt();
     } else {
       toast.info("Connecting to server...");
-      socket.addEventListener("open", () => {
-        socket.send(JSON.stringify({ type: "join-room", roomCode, userId, name }));
-        setStep("chat");
-        toast.success(`Joining room ${roomCode}...`);
-      }, { once: true });
+      socket.addEventListener("open", joinRoomAttempt, { once: true });
     }
   };
 

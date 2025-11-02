@@ -75,8 +75,10 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ roomCode, userId, name }) =>
     const [input, setInput] = useState("");
     const [users, setUsers] = useState(1);
     const [typingUser, setTypingUser] = useState<string | null>(null);
+    const [isRateLimited, setIsRateLimited] = useState(false);
     const socketRef = useRef<WebSocket>(getSocket());
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -133,7 +135,14 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ roomCode, userId, name }) =>
                     break;
                 case "error":
                     toast.error(data.message);
-                    console.error("WebSocket error:", data.message);
+                    if (data.message.includes("Too many requests")) {
+                        setIsRateLimited(true);
+                        setTimeout(() => {
+                            setIsRateLimited(false);
+                            toast.info("You can send messages again.");
+                        }, 5000); 
+                    }
+    
                     break;
             }
         };
@@ -164,15 +173,20 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ roomCode, userId, name }) =>
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInput(e.target.value);
-        if (socketRef.current.readyState === WebSocket.OPEN) {
-            socketRef.current.send(
-                JSON.stringify({ type: "typing", roomCode, userId, name })
-            );
+        if (socketRef.current.readyState === WebSocket.OPEN && !isRateLimited) {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+            typingTimeoutRef.current = setTimeout(() => {
+                socketRef.current.send(
+                    JSON.stringify({ type: "typing", roomCode, userId, name })
+                );
+            }, 300); 
         }
     };
 
     const sendMessage = () => {
-        if (input.trim()) {
+        if (input.trim() && !isRateLimited) {
             const messagePayload = {
                 type: "send-message",
                 roomCode,
@@ -208,8 +222,9 @@ export const ChatRoom: React.FC<ChatRoomProps> = ({ roomCode, userId, name }) =>
                         onChange={handleInputChange}
                         onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                         className="flex-1 text-foreground"
+                        disabled={isRateLimited}
                     />
-                    <Button onClick={sendMessage}>Send</Button>
+                    <Button onClick={sendMessage} disabled={isRateLimited}>Send</Button>
                 </div>
             </CardContent>
         </Card>
