@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getSocket } from "./lib/socket";
 import { Input } from "app/components/ui/input";
 import { Button } from "app/components/ui/button";
@@ -17,6 +17,16 @@ export default function ChatPage() {
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [userId] = useState(randomId());
+  const nameRef = useRef(name);
+  const roomCodeRef = useRef(roomCode);
+
+  useEffect(() => {
+    nameRef.current = name;
+  }, [name]);
+
+  useEffect(() => {
+    roomCodeRef.current = roomCode;
+  }, [roomCode]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -28,6 +38,10 @@ export default function ChatPage() {
         toast.success(`Room ${data.roomCode} created!`);
       } else if (data.type === "error") {
         toast.error(data.message);
+      } else if (data.type === "joined-room") {
+        setRoomCode(data.roomCode);
+        setStep("chat");
+        toast.success(`Successfully joined room ${data.roomCode}!`);
       }
     });
     socket.addEventListener("close", () => {
@@ -68,8 +82,8 @@ export default function ChatPage() {
     const socket = getSocket();
 
     const joinRoomAttempt = () => {
-      socket.send(JSON.stringify({ type: "join-room", roomCode, userId, name }));
-      toast.success(`Attempting to join room ${roomCode}...`);
+      socket.send(JSON.stringify({ type: "join-room", roomId: roomCodeRef.current, userId, name: nameRef.current }));
+      toast.success(`Attempting to join room ${roomCodeRef.current}...`);
     };
 
     if (socket.readyState === WebSocket.OPEN) {

@@ -31,6 +31,7 @@ export function joinRoom(ws: ExtWebSocket, roomId: string, userId: string, broad
   const room = rooms.get(roomId);
   if (!room) {
     sendError(ws, 'Room not found', 404);
+
     return false;
   }
 
