@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import { Message, ExtWebSocket, RoomData } from '../types';
 import { sendError } from '../utils/errorUtils';
-import { getRoom, getRoomsMap } from './roomManager';
+import { getRoom } from './roomManager';
 import { sanitizeHtml } from '../utils/inputSanitizer';
 
 export function handleSendMessage(ws: ExtWebSocket, data: any, broadcastToRoom: (roomCode: string, message: any, skipUserId?: string) => void) {

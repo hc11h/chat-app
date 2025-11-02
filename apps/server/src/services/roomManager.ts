@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
-import { RoomData, ExtWebSocket, Message } from '../types';
+import { RoomData, ExtWebSocket } from '../types';
 import { sendError } from '../utils/errorUtils';
-import WebSocket from 'ws';
+
 
 const rooms = new Map<string, RoomData>();
 
@@ -14,7 +14,7 @@ export function createRoom(ws: ExtWebSocket) {
   });
 
   ws.send(JSON.stringify({ type: 'room-created', roomCode }));
-  console.log(`🏠 Room created: ${roomCode}`);
+  console.log(`Room created: ${roomCode}`);
   return roomCode;
 }
 
@@ -50,7 +50,7 @@ export function joinRoom(ws: ExtWebSocket, roomId: string, userId: string, broad
     usersCount: room.users.size,
   });
 
-  console.log(`👥 User joined: userId=${ws.id}, room=${roomId}, usersCount=${room.users.size}`);
+  console.log(`User joined: userId=${ws.id}, room=${roomId}, usersCount=${room.users.size}`);
   return true;
 }
 
@@ -66,7 +66,7 @@ export function leaveRoom(ws: ExtWebSocket, broadcastToRoom: (roomCode: string, 
       usersCount: room.users.size,
     });
 
-    console.log(`🔴 User left: userId=${ws.id}, room=${ws.roomId}, usersCount=${room.users.size}`);
+    console.log(`User left: userId=${ws.id}, room=${ws.roomId}, usersCount=${room.users.size}`);
 
     if (room.users.size === 0) {
       rooms.delete(ws.roomId);
