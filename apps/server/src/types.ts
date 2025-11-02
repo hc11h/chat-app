@@ -16,7 +16,11 @@ export interface RoomData {
 }
 
 export interface ExtWebSocket extends WebSocket {
+  isAlive: boolean;
   id: string;
   roomId: string;
-  isAlive: boolean;
+  rateLimiter?: {
+    messageCount: number;
+    lastResetTime: number;
+  };
 }

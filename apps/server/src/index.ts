@@ -7,6 +7,7 @@ import { Message, RoomData, ExtWebSocket } from './types';
 import { sendError } from './utils/errorUtils';
 import { createRoom, joinRoom, leaveRoom, getRoomsMap } from './services/roomManager';
 import { handleSendMessage, handleTyping, handleSeenMessage } from './services/messageHandler';
+import { initializeRateLimiter, checkRateLimit } from './utils/rateLimiter';
 
 const app = express();
 const httpServer = createServer(app);
@@ -38,6 +39,7 @@ wss.on('connection', (ws: ExtWebSocket) => {
   ws.isAlive = true;
   ws.id = '';      
   ws.roomId = '';
+  initializeRateLimiter(ws);
 
   console.log('🟢 Client connected');
 
@@ -46,6 +48,10 @@ wss.on('connection', (ws: ExtWebSocket) => {
   });
 
   ws.on('message', (raw: string) => {
+    if (!checkRateLimit(ws)) {
+      return;
+    }
+
     let data: any;
     try {
       data = JSON.parse(raw);

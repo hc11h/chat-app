@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { Message, ExtWebSocket, RoomData } from '../types';
 import { sendError } from '../utils/errorUtils';
 import { getRoom, getRoomsMap } from './roomManager';
+import { sanitizeHtml } from '../utils/inputSanitizer';
 
 export function handleSendMessage(ws: ExtWebSocket, data: any, broadcastToRoom: (roomCode: string, message: any, skipUserId?: string) => void) {
   const { roomCode, message, userId, name } = data;
@@ -32,9 +33,10 @@ export function handleSendMessage(ws: ExtWebSocket, data: any, broadcastToRoom: 
   }
 
   room.lastActive = Date.now();
+  const sanitizedMessage = sanitizeHtml(message);
   const msg: Message & { status?: string } = {
     id: randomBytes(4).toString('hex'),
-    content: message,
+    content: sanitizedMessage,
     senderId: userId,
     sender: name,
     timestamp: new Date(),
